@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
 
 typedef struct s_args
 {
@@ -28,12 +29,15 @@ typedef struct s_dongle
     long release_time; // Depuis quand il est dispo
     int nb_in_queue; // combien de coder le veulent
     t_queue *queue; // la queue du dongle
+    pthread_mutex_t mutex; // Besoin d'un mutex pour protéger son acces 
+    pthread_cond_t condition; // Condition pour savoir juqu'a quand il doit wait
 } t_dongle;
 
 typedef struct s_shared_data
 {
     t_args  args; // Tous les args parsé 
     t_dongle *dongle; // Tous les dongles
+    pthread_mutex_t log_mutex; 
 } t_shared_data;
 
 typedef struct s_coder
