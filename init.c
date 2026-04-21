@@ -1,6 +1,6 @@
 #include "codexion.h"
 
-void	init_dongles(t_shared_data *shared_data)
+static void	init_dongles(t_shared_data *shared_data)
 {
 	int	i;
 
@@ -40,4 +40,18 @@ void	init_shared_data(t_shared_data *shared_data)
 	shared_data->simulation_over = 0;
 	pthread_mutex_init(&shared_data->log_mutex, NULL);
 	init_dongles(shared_data);
+}
+
+void	create_thread(pthread_t *threads, t_coder *coders, pthread_t *monitor,
+		t_shared_data *shared_data)
+{
+	int i;
+
+	i = 0;
+	while (i < shared_data->args.nb_coders)
+	{
+		pthread_create(&threads[i], NULL, coder_routine, &coders[i]);
+		i++;
+	}
+	pthread_create(monitor, NULL, monitor_routine, shared_data);
 }
