@@ -56,9 +56,10 @@ typedef struct s_coder
 
 int			parse_args(int argc, char **argv, t_args *args);
 int			ft_atoi(char *str);
-void		init_dongles(t_shared_data *shared_data);
 void		init_coders(t_shared_data *shared_data, t_coder *coders);
 void		init_shared_data(t_shared_data *shared_data);
 long		get_time_ms(void);
+void		create_thread(pthread_t *threads, t_coder *coders,
+				pthread_t *monitor, t_shared_data *shared_data);
 
 #endif
