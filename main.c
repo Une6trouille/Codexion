@@ -41,6 +41,7 @@ int	main(int argc, char **argv)
 	pthread_t		monitor;
 
 	shared_data = malloc(sizeof(t_shared_data));
+	shared_data->start_time = get_time_ms();
 	if (!parse_args(argc, argv, &shared_data->args))
 	{
 		free(shared_data);
