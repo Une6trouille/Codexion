@@ -29,7 +29,7 @@ void	init_coders(t_shared_data *shared_data, t_coder *coders)
 		coders[i].dongle_held = 0;
 		coders[i].id = i + 1;
 		coders[i].nb_compile = 0;
-		coders[i].timestamp = 0;
+		coders[i].timestamp = get_time_ms();
 		coders[i].t_shared_data = shared_data;
 		i++;
 	}
@@ -40,6 +40,7 @@ void	init_shared_data(t_shared_data *shared_data)
 	shared_data->simulation_over = 0;
 	pthread_mutex_init(&shared_data->log_mutex, NULL);
 	init_dongles(shared_data);
+	shared_data->start_time = get_time_ms();
 }
 
 void	create_thread(pthread_t *threads, t_coder *coders, pthread_t *monitor,

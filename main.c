@@ -51,6 +51,7 @@ int	main(int argc, char **argv)
 	coders = malloc(sizeof(t_coder) * shared_data->args.nb_coders);
 	threads = malloc(sizeof(pthread_t) * shared_data->args.nb_coders);
 	init_coders(shared_data, coders);
+	shared_data->coders = coders;
 	create_thread(threads, coders, &monitor, shared_data);
 	join_threads(threads, &monitor, shared_data);
 	free_all(shared_data, coders, threads);
