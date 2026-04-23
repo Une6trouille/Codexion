@@ -1,8 +1,8 @@
 #include "codexion.h"
 
-int	ft_atoi(char *str)
+long	ft_atoi(char *str)
 {
-	int result;
+	long result;
 	int i;
 
 	i = 0;
