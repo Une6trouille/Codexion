@@ -23,9 +23,12 @@ void	free_all(t_shared_data *shared_data, t_coder *coders,
 	while (i < shared_data->args.nb_coders)
 	{
 		pthread_mutex_destroy(&shared_data->dongle[i].mutex);
+		pthread_mutex_destroy(&shared_data->coders[i].mutex);
 		pthread_cond_destroy(&shared_data->dongle[i].condition);
+		free(shared_data->dongle[i].queue.data);
 		i++;
 	}
+	pthread_mutex_destroy(&shared_data->simulation_mutex);
 	pthread_mutex_destroy(&shared_data->log_mutex);
 	free(shared_data->dongle);
 	free(coders);
@@ -41,15 +44,32 @@ int	main(int argc, char **argv)
 	pthread_t		monitor;
 
 	shared_data = malloc(sizeof(t_shared_data));
+	if (!shared_data)
+		return (1);
 	shared_data->start_time = get_time_ms();
 	if (!parse_args(argc, argv, &shared_data->args))
 	{
 		free(shared_data);
 		return (1);
 	}
-	init_shared_data(shared_data);
+	if (init_shared_data(shared_data))
+	{
+		free(shared_data);
+		return (1);
+	}
 	coders = malloc(sizeof(t_coder) * shared_data->args.nb_coders);
+	if (!coders)
+	{
+		free(shared_data);
+		return (1);
+	}
 	threads = malloc(sizeof(pthread_t) * shared_data->args.nb_coders);
+	if (!threads)
+	{
+		free(shared_data);
+		free(coders);
+		return (1);
+	}
 	init_coders(shared_data, coders);
 	shared_data->coders = coders;
 	create_thread(threads, coders, &monitor, shared_data);
