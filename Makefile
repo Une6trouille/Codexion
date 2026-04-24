@@ -8,7 +8,7 @@ OBJ = $(SRC:%.c=$(OBJDIR)/%.o)
 DEP = $(OBJ:%.o=%.d)
 
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -pthread  -I ./ -MMD -MP
+CFLAGS = -Wall -Wextra -Werror -pthread -I ./ -MMD -MP
 
 #-fsanitize=thread
 
@@ -18,7 +18,7 @@ $(NAME): $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
 
 $(OBJDIR)/%.o: %.c | $(OBJDIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@ -g3
 
 $(OBJDIR):
 	mkdir $(OBJDIR)

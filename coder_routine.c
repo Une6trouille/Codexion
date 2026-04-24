@@ -5,6 +5,8 @@ void	*coder_routine(void *arg)
 	t_coder	*coder;
 
 	coder = (t_coder *)arg;
+	if (coder->id % 2 == 0)
+		usleep(100);
 	while (!should_stop(coder))
 	{
 		take_dongles(coder);
@@ -83,10 +85,9 @@ void	take_dongles(t_coder *coder)
 
 void	take_left_dongle(t_coder *coder)
 {
-	struct timespec	ts;
-	t_queue			entry;
-	int				stop;
-	int				idx;
+	t_queue	entry;
+	int		stop;
+	int		idx;
 
 	idx = coder->id - 1;
 	entry.id = coder->id;
@@ -105,9 +106,8 @@ void	take_left_dongle(t_coder *coder)
 			- coder->t_shared_data->dongle[idx].release_time < coder->t_shared_data->args.dongle_cooldown
 			|| coder->t_shared_data->dongle[idx].queue.data[0].id != coder->id))
 	{
-		ts = get_timespec_ms(coder->t_shared_data->args.dongle_cooldown);
-		pthread_cond_timedwait(&coder->t_shared_data->dongle[idx].condition,
-			&coder->t_shared_data->dongle[idx].mutex, &ts);
+		pthread_cond_wait(&coder->t_shared_data->dongle[idx].condition,
+			&coder->t_shared_data->dongle[idx].mutex);
 		pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
 		stop = coder->t_shared_data->simulation_over;
 		pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
@@ -127,10 +127,9 @@ void	take_left_dongle(t_coder *coder)
 
 void	take_right_dongle(t_coder *coder)
 {
-	struct timespec	ts;
-	t_queue			entry;
-	int				stop;
-	int				idx;
+	t_queue	entry;
+	int		stop;
+	int		idx;
 
 	idx = coder->id % coder->t_shared_data->args.nb_coders;
 	entry.id = coder->id;
@@ -149,9 +148,8 @@ void	take_right_dongle(t_coder *coder)
 			- coder->t_shared_data->dongle[idx].release_time < coder->t_shared_data->args.dongle_cooldown
 			|| coder->t_shared_data->dongle[idx].queue.data[0].id != coder->id))
 	{
-		ts = get_timespec_ms(coder->t_shared_data->args.dongle_cooldown);
-		pthread_cond_timedwait(&coder->t_shared_data->dongle[idx].condition,
-			&coder->t_shared_data->dongle[idx].mutex, &ts);
+		pthread_cond_wait(&coder->t_shared_data->dongle[idx].condition,
+			&coder->t_shared_data->dongle[idx].mutex);
 		pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
 		stop = coder->t_shared_data->simulation_over;
 		pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
@@ -173,18 +171,18 @@ void	release_dongles(t_coder *coder)
 {
 	pthread_mutex_lock(&coder->t_shared_data->dongle[coder->id - 1].mutex);
 	coder->t_shared_data->dongle[coder->id - 1].free = 1;
+	coder->t_shared_data->dongle[coder->id - 1].release_time = get_time_ms();
 	pthread_cond_broadcast(&coder->t_shared_data->dongle[coder->id
 		- 1].condition);
-	coder->t_shared_data->dongle[coder->id - 1].release_time = get_time_ms();
 	pthread_mutex_unlock(&coder->t_shared_data->dongle[coder->id - 1].mutex);
 	pthread_mutex_lock(&coder->t_shared_data->dongle[coder->id
 		% coder->t_shared_data->args.nb_coders].mutex);
 	coder->t_shared_data->dongle[coder->id
 		% coder->t_shared_data->args.nb_coders].free = 1;
-	pthread_cond_broadcast(&coder->t_shared_data->dongle[coder->id
-		% coder->t_shared_data->args.nb_coders].condition);
 	coder->t_shared_data->dongle[coder->id
 		% coder->t_shared_data->args.nb_coders].release_time = get_time_ms();
+	pthread_cond_broadcast(&coder->t_shared_data->dongle[coder->id
+		% coder->t_shared_data->args.nb_coders].condition);
 	pthread_mutex_unlock(&coder->t_shared_data->dongle[coder->id
 		% coder->t_shared_data->args.nb_coders].mutex);
 }

@@ -15,6 +15,7 @@ static int	init_dongles(t_shared_data *shared_data)
 		shared_data->dongle[i].nb_in_queue = 0;
 		pthread_cond_init(&shared_data->dongle[i].condition, NULL);
 		pthread_mutex_init(&shared_data->dongle[i].mutex, NULL);
+		pthread_mutex_init(&shared_data->dongle[i].mutex2, NULL);
 		shared_data->dongle[i].release_time = 0;
 		shared_data->dongle[i].queue.size = 0;
 		shared_data->dongle[i].queue.data = malloc(sizeof(t_queue)

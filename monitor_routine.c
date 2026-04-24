@@ -15,7 +15,8 @@ void	*monitor_routine(void *arg)
 		while (i < shared_data->args.nb_coders)
 		{
 			pthread_mutex_lock(&shared_data->coders[i].mutex);
-			if (get_time_ms()
+			if (shared_data->coders[i].nb_compile < shared_data->args.nb_compiles_required
+				&& get_time_ms()
 				- shared_data->coders[i].timestamp > shared_data->args.time_to_burnout)
 				burned = i;
 			pthread_mutex_unlock(&shared_data->coders[i].mutex);
@@ -70,6 +71,14 @@ void	*monitor_routine(void *arg)
 			break ;
 		}
 		pthread_mutex_unlock(&shared_data->simulation_mutex);
+		i = 0;
+		while (i < shared_data->args.nb_coders)
+		{
+			pthread_mutex_lock(&shared_data->dongle[i].mutex);
+			pthread_cond_broadcast(&shared_data->dongle[i].condition);
+			pthread_mutex_unlock(&shared_data->dongle[i].mutex);
+			i++;
+		}
 		usleep(1000);
 	}
 	return (NULL);
