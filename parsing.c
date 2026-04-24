@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parsing.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ndi-tull < ndi-tull@student.42lyon.fr >    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/04/24 19:01:08 by ndi-tull          #+#    #+#             */
+/*   Updated: 2026/04/24 20:19:00 by ndi-tull         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
 static int	check_sheduler(char *str, t_args *args)
@@ -69,9 +81,9 @@ int	parse_args(int argc, char **argv, t_args *args)
 	if (argc != 9)
 	{
 		fprintf(stderr,
-				"Usage: ./codexion nb_coders time_to_burnout"
-				" time_to_compile time_to_debug time_to_refactor"
-				" nb_compiles_required dongle_cooldown scheduler\n");
+			"Usage: ./codexion nb_coders time_to_burnout"
+			" time_to_compile time_to_debug time_to_refactor"
+			" nb_compiles_required dongle_cooldown scheduler\n");
 		return (0);
 	}
 	if (!check_numeric_args(argv))

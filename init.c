@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ndi-tull < ndi-tull@student.42lyon.fr >    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/04/24 20:24:01 by ndi-tull          #+#    #+#             */
+/*   Updated: 2026/04/24 20:24:06 by ndi-tull         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
 static int	init_dongles(t_shared_data *shared_data)
@@ -13,9 +25,9 @@ static int	init_dongles(t_shared_data *shared_data)
 	{
 		shared_data->dongle[i].free = 1;
 		shared_data->dongle[i].nb_in_queue = 0;
+		shared_data->dongle[i].seq_counter = 0;
 		pthread_cond_init(&shared_data->dongle[i].condition, NULL);
 		pthread_mutex_init(&shared_data->dongle[i].mutex, NULL);
-		pthread_mutex_init(&shared_data->dongle[i].mutex2, NULL);
 		shared_data->dongle[i].release_time = 0;
 		shared_data->dongle[i].queue.size = 0;
 		shared_data->dongle[i].queue.data = malloc(sizeof(t_queue)

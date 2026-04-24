@@ -1,18 +1,28 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   heap.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ndi-tull < ndi-tull@student.42lyon.fr >    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/04/24 19:21:13 by ndi-tull          #+#    #+#             */
+/*   Updated: 2026/04/24 20:10:54 by ndi-tull         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
+
+static int	queue_less(t_queue a, t_queue b)
+{
+	if (a.timestamp != b.timestamp)
+		return (a.timestamp < b.timestamp);
+	return (a.seq < b.seq);
+}
 
 static int	sheduler_type(t_heap *heap, int i, int scheduler)
 {
 	(void)scheduler;
-	return (heap->data[(i - 1) / 2].timestamp > heap->data[i].timestamp);
-}
-
-static void	swap_queue(t_queue *a, t_queue *b)
-{
-	t_queue	tmp;
-
-	tmp = *a;
-	*a = *b;
-	*b = tmp;
+	return (queue_less(heap->data[i], heap->data[(i - 1) / 2]));
 }
 
 void	heap_push(t_heap *heap, t_queue element, int scheduler)
@@ -29,13 +39,29 @@ void	heap_push(t_heap *heap, t_queue element, int scheduler)
 	}
 }
 
+static int	find_smallest_child(t_heap *heap, int i)
+{
+	int	left;
+	int	right;
+	int	smallest;
+
+	left = 2 * i + 1;
+	right = 2 * i + 2;
+	smallest = i;
+	if (left < heap->size
+		&& queue_less(heap->data[left], heap->data[smallest]))
+		smallest = left;
+	if (right < heap->size
+		&& queue_less(heap->data[right], heap->data[smallest]))
+		smallest = right;
+	return (smallest);
+}
+
 t_queue	heap_pop(t_heap *heap)
 {
-	t_queue top;
-	int i;
-	int left;
-	int right;
-	int smallest;
+	t_queue	top;
+	int		i;
+	int		smallest;
 
 	top = heap->data[0];
 	heap->size--;
@@ -43,15 +69,7 @@ t_queue	heap_pop(t_heap *heap)
 	i = 0;
 	while (1)
 	{
-		left = 2 * i + 1;
-		right = 2 * i + 2;
-		smallest = i;
-		if (left < heap->size
-			&& heap->data[left].timestamp < heap->data[smallest].timestamp)
-			smallest = left;
-		if (right < heap->size
-			&& heap->data[right].timestamp < heap->data[smallest].timestamp)
-			smallest = right;
+		smallest = find_smallest_child(heap, i);
 		if (smallest == i)
 			break ;
 		swap_queue(&heap->data[i], &heap->data[smallest]);

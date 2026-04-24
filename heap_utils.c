@@ -1,28 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   atoi.c                                             :+:      :+:    :+:   */
+/*   heap_utils.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ndi-tull < ndi-tull@student.42lyon.fr >    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/24 19:20:53 by ndi-tull          #+#    #+#             */
-/*   Updated: 2026/04/24 20:10:43 by ndi-tull         ###   ########.fr       */
+/*   Created: 2026/04/24 19:50:36 by ndi-tull          #+#    #+#             */
+/*   Updated: 2026/04/24 20:10:52 by ndi-tull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-long	ft_atoi(char *str)
+void	swap_queue(t_queue *a, t_queue *b)
 {
-	long result;
-	int i;
+	t_queue	tmp;
 
-	i = 0;
-	result = 0;
-	while (str[i] >= '0' && str[i] <= '9')
-	{
-		result = (result * 10) + (str[i] - '0');
-		i++;
-	}
-	return (result);
+	tmp = *a;
+	*a = *b;
+	*b = tmp;
 }

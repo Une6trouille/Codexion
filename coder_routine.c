@@ -1,203 +1,91 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   coder_routine.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ndi-tull < ndi-tull@student.42lyon.fr >    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/04/24 19:01:08 by ndi-tull          #+#    #+#             */
+/*   Updated: 2026/04/24 20:10:44 by ndi-tull         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
+
+static void	run_phase(t_coder *coder, char *msg, long duration)
+{
+	log_action(coder, msg);
+	usleep(duration * 1000);
+}
+
+static void	work_cycle(t_coder *coder)
+{
+	pthread_mutex_lock(&coder->mutex);
+	coder->timestamp = get_time_ms();
+	pthread_mutex_unlock(&coder->mutex);
+	run_phase(coder, "is compiling",
+		coder->t_shared_data->args.time_to_compile);
+	release_dongles(coder);
+	if (is_simulation_over(coder->t_shared_data))
+		return ;
+	run_phase(coder, "is debugging",
+		coder->t_shared_data->args.time_to_debug);
+	if (is_simulation_over(coder->t_shared_data))
+		return ;
+	run_phase(coder, "is refactoring",
+		coder->t_shared_data->args.time_to_refactor);
+	pthread_mutex_lock(&coder->mutex);
+	coder->nb_compile++;
+	pthread_mutex_unlock(&coder->mutex);
+}
 
 void	*coder_routine(void *arg)
 {
 	t_coder	*coder;
 
 	coder = (t_coder *)arg;
-	if (coder->id % 2 == 0)
-		usleep(100);
 	while (!should_stop(coder))
 	{
 		take_dongles(coder);
-		pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
-		if (coder->t_shared_data->simulation_over == 1)
-		{
-			pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
+		if (is_simulation_over(coder->t_shared_data))
 			return (NULL);
-		}
-		pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-		pthread_mutex_lock(&coder->mutex);
-		coder->timestamp = get_time_ms();
-		pthread_mutex_unlock(&coder->mutex);
-		log_action(coder, "is compiling");
-		usleep(coder->t_shared_data->args.time_to_compile * 1000);
-		pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
-		if (coder->t_shared_data->simulation_over == 1)
-		{
-			pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-			return (NULL);
-		}
-		pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-		release_dongles(coder);
-		log_action(coder, "is debugging");
-		usleep(coder->t_shared_data->args.time_to_debug * 1000);
-		pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
-		if (coder->t_shared_data->simulation_over == 1)
-		{
-			pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-			return (NULL);
-		}
-		pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-		log_action(coder, "is refactoring");
-		usleep(coder->t_shared_data->args.time_to_refactor * 1000);
-		pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
-		if (coder->t_shared_data->simulation_over == 1)
-		{
-			pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-			return (NULL);
-		}
-		pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-		pthread_mutex_lock(&coder->mutex);
-		coder->nb_compile++;
-		pthread_mutex_unlock(&coder->mutex);
+		work_cycle(coder);
 	}
 	return (NULL);
 }
 
 void	take_dongles(t_coder *coder)
 {
+	int	left;
+	int	right;
+
+	left = coder->id - 1;
+	right = coder->id % coder->t_shared_data->args.nb_coders;
 	if (coder->id % 2 == 0)
 	{
-		take_right_dongle(coder);
-		pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
-		if (coder->t_shared_data->simulation_over == 1)
-		{
-			pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
+		take_dongle(coder, right);
+		if (is_simulation_over(coder->t_shared_data))
 			return ;
-		}
-		pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-		take_left_dongle(coder);
+		take_dongle(coder, left);
 	}
 	else
 	{
-		take_left_dongle(coder);
-		pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
-		if (coder->t_shared_data->simulation_over == 1)
-		{
-			pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
+		take_dongle(coder, left);
+		if (is_simulation_over(coder->t_shared_data))
 			return ;
-		}
-		pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-		take_right_dongle(coder);
+		take_dongle(coder, right);
 	}
-}
-
-void	take_left_dongle(t_coder *coder)
-{
-	t_queue	entry;
-	int		stop;
-	int		idx;
-
-	idx = coder->id - 1;
-	entry.id = coder->id;
-	entry.timestamp = get_time_ms();
-	if (coder->t_shared_data->args.scheduler == 1)
-		entry.timestamp = coder->timestamp
-			+ coder->t_shared_data->args.time_to_burnout;
-	pthread_mutex_lock(&coder->t_shared_data->dongle[idx].mutex);
-	heap_push(&coder->t_shared_data->dongle[idx].queue, entry,
-		coder->t_shared_data->args.scheduler);
-	pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
-	stop = coder->t_shared_data->simulation_over;
-	pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-	while (!stop && (coder->t_shared_data->dongle[idx].free == 0
-			|| get_time_ms()
-			- coder->t_shared_data->dongle[idx].release_time < coder->t_shared_data->args.dongle_cooldown
-			|| coder->t_shared_data->dongle[idx].queue.data[0].id != coder->id))
-	{
-		pthread_cond_wait(&coder->t_shared_data->dongle[idx].condition,
-			&coder->t_shared_data->dongle[idx].mutex);
-		pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
-		stop = coder->t_shared_data->simulation_over;
-		pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-	}
-	if (stop)
-	{
-		heap_pop(&coder->t_shared_data->dongle[idx].queue);
-		pthread_mutex_unlock(&coder->t_shared_data->dongle[idx].mutex);
-		return ;
-	}
-	heap_pop(&coder->t_shared_data->dongle[idx].queue);
-	log_action(coder, "has taken a dongle");
-	coder->dongle_held += 1;
-	coder->t_shared_data->dongle[idx].free = 0;
-	pthread_mutex_unlock(&coder->t_shared_data->dongle[idx].mutex);
-}
-
-void	take_right_dongle(t_coder *coder)
-{
-	t_queue	entry;
-	int		stop;
-	int		idx;
-
-	idx = coder->id % coder->t_shared_data->args.nb_coders;
-	entry.id = coder->id;
-	entry.timestamp = get_time_ms();
-	if (coder->t_shared_data->args.scheduler == 1)
-		entry.timestamp = coder->timestamp
-			+ coder->t_shared_data->args.time_to_burnout;
-	pthread_mutex_lock(&coder->t_shared_data->dongle[idx].mutex);
-	heap_push(&coder->t_shared_data->dongle[idx].queue, entry,
-		coder->t_shared_data->args.scheduler);
-	pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
-	stop = coder->t_shared_data->simulation_over;
-	pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-	while (!stop && (coder->t_shared_data->dongle[idx].free == 0
-			|| get_time_ms()
-			- coder->t_shared_data->dongle[idx].release_time < coder->t_shared_data->args.dongle_cooldown
-			|| coder->t_shared_data->dongle[idx].queue.data[0].id != coder->id))
-	{
-		pthread_cond_wait(&coder->t_shared_data->dongle[idx].condition,
-			&coder->t_shared_data->dongle[idx].mutex);
-		pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
-		stop = coder->t_shared_data->simulation_over;
-		pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-	}
-	if (stop)
-	{
-		heap_pop(&coder->t_shared_data->dongle[idx].queue);
-		pthread_mutex_unlock(&coder->t_shared_data->dongle[idx].mutex);
-		return ;
-	}
-	heap_pop(&coder->t_shared_data->dongle[idx].queue);
-	log_action(coder, "has taken a dongle");
-	coder->dongle_held += 1;
-	coder->t_shared_data->dongle[idx].free = 0;
-	pthread_mutex_unlock(&coder->t_shared_data->dongle[idx].mutex);
-}
-
-void	release_dongles(t_coder *coder)
-{
-	pthread_mutex_lock(&coder->t_shared_data->dongle[coder->id - 1].mutex);
-	coder->t_shared_data->dongle[coder->id - 1].free = 1;
-	coder->t_shared_data->dongle[coder->id - 1].release_time = get_time_ms();
-	pthread_cond_broadcast(&coder->t_shared_data->dongle[coder->id
-		- 1].condition);
-	pthread_mutex_unlock(&coder->t_shared_data->dongle[coder->id - 1].mutex);
-	pthread_mutex_lock(&coder->t_shared_data->dongle[coder->id
-		% coder->t_shared_data->args.nb_coders].mutex);
-	coder->t_shared_data->dongle[coder->id
-		% coder->t_shared_data->args.nb_coders].free = 1;
-	coder->t_shared_data->dongle[coder->id
-		% coder->t_shared_data->args.nb_coders].release_time = get_time_ms();
-	pthread_cond_broadcast(&coder->t_shared_data->dongle[coder->id
-		% coder->t_shared_data->args.nb_coders].condition);
-	pthread_mutex_unlock(&coder->t_shared_data->dongle[coder->id
-		% coder->t_shared_data->args.nb_coders].mutex);
 }
 
 int	should_stop(t_coder *coder)
 {
-	int stop;
+	int	stop;
 
-	pthread_mutex_lock(&coder->t_shared_data->simulation_mutex);
-	stop = coder->t_shared_data->simulation_over;
-	pthread_mutex_unlock(&coder->t_shared_data->simulation_mutex);
-	if (stop)
+	if (is_simulation_over(coder->t_shared_data))
 		return (1);
 	pthread_mutex_lock(&coder->mutex);
-	stop = (coder->nb_compile >= coder->t_shared_data->args.nb_compiles_required);
+	stop = (coder->nb_compile
+			>= coder->t_shared_data->args.nb_compiles_required);
 	pthread_mutex_unlock(&coder->mutex);
 	return (stop);
 }

@@ -1,7 +1,7 @@
 NAME = codexion
 
-SRC = atoi.c coder_routine.c get_time.c init.c main.c monitor_routine.c \
-	parsing.c print.c heap.c
+SRC = atoi.c coder_routine.c coder_utils.c get_time.c init.c main.c \
+	monitor_routine.c parsing.c print.c heap.c heap_utils.c
 
 OBJDIR = .obj
 OBJ = $(SRC:%.c=$(OBJDIR)/%.o)
