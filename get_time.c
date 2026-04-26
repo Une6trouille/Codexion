@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   get_time.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ndi-tull < ndi-tull@student.42lyon.fr >    +#+  +:+       +#+        */
+/*   By: ndi-tull <ndi-tull@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/24 19:21:04 by ndi-tull          #+#    #+#             */
-/*   Updated: 2026/04/24 20:10:51 by ndi-tull         ###   ########.fr       */
+/*   Updated: 2026/04/27 00:05:46 by ndi-tull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,8 @@ long	get_time_ms(void)
 
 struct timespec	get_timespec_ms(long ms)
 {
-	struct timeval tv;
-	struct timespec ts;
+	struct timeval	tv;
+	struct timespec	ts;
 
 	gettimeofday(&tv, NULL);
 	ts.tv_sec = tv.tv_sec + (ms / 1000);

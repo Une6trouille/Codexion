@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ndi-tull <ndi-tull@student.42lyon.fr>      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/04/24 19:01:08 by ndi-tull          #+#    #+#             */
+/*   Updated: 2026/04/26 23:48:08 by ndi-tull         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
 static void	join_threads(pthread_t *thread, pthread_t *monitor,
@@ -36,6 +48,40 @@ void	free_all(t_shared_data *shared_data, t_coder *coders,
 	free(shared_data);
 }
 
+static int	alloc_main_resources(t_shared_data *sd, t_coder **coders,
+		pthread_t **threads)
+{
+	*coders = malloc(sizeof(t_coder) * sd->args.nb_coders);
+	if (!*coders)
+		return (1);
+	*threads = malloc(sizeof(pthread_t) * sd->args.nb_coders);
+	if (!*threads)
+	{
+		free(*coders);
+		*coders = NULL;
+		return (1);
+	}
+	return (0);
+}
+
+static void	free_partial(t_shared_data *sd)
+{
+	int	i;
+
+	i = 0;
+	while (i < sd->args.nb_coders)
+	{
+		pthread_mutex_destroy(&sd->dongle[i].mutex);
+		pthread_cond_destroy(&sd->dongle[i].condition);
+		free(sd->dongle[i].queue.data);
+		i++;
+	}
+	pthread_mutex_destroy(&sd->simulation_mutex);
+	pthread_mutex_destroy(&sd->log_mutex);
+	free(sd->dongle);
+	free(sd);
+}
+
 int	main(int argc, char **argv)
 {
 	t_shared_data	*shared_data;
@@ -46,28 +92,15 @@ int	main(int argc, char **argv)
 	shared_data = malloc(sizeof(t_shared_data));
 	if (!shared_data)
 		return (1);
+	shared_data->coders = NULL;
 	shared_data->start_time = get_time_ms();
 	if (!parse_args(argc, argv, &shared_data->args))
-	{
-		free(shared_data);
-		return (1);
-	}
+		return (free(shared_data), 1);
 	if (init_shared_data(shared_data))
+		return (free(shared_data), 1);
+	if (alloc_main_resources(shared_data, &coders, &threads))
 	{
-		free(shared_data);
-		return (1);
-	}
-	coders = malloc(sizeof(t_coder) * shared_data->args.nb_coders);
-	if (!coders)
-	{
-		free(shared_data);
-		return (1);
-	}
-	threads = malloc(sizeof(pthread_t) * shared_data->args.nb_coders);
-	if (!threads)
-	{
-		free(shared_data);
-		free(coders);
+		free_partial(shared_data);
 		return (1);
 	}
 	init_coders(shared_data, coders);

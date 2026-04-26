@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   coder_routine.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ndi-tull < ndi-tull@student.42lyon.fr >    +#+  +:+       +#+        */
+/*   By: ndi-tull <ndi-tull@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/24 19:01:08 by ndi-tull          #+#    #+#             */
-/*   Updated: 2026/04/24 20:10:44 by ndi-tull         ###   ########.fr       */
+/*   Updated: 2026/04/27 00:05:18 by ndi-tull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,7 @@ static void	work_cycle(t_coder *coder)
 	release_dongles(coder);
 	if (is_simulation_over(coder->t_shared_data))
 		return ;
-	run_phase(coder, "is debugging",
-		coder->t_shared_data->args.time_to_debug);
+	run_phase(coder, "is debugging", coder->t_shared_data->args.time_to_debug);
 	if (is_simulation_over(coder->t_shared_data))
 		return ;
 	run_phase(coder, "is refactoring",

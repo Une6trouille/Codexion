@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   atoi.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ndi-tull < ndi-tull@student.42lyon.fr >    +#+  +:+       +#+        */
+/*   By: ndi-tull <ndi-tull@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/24 19:20:53 by ndi-tull          #+#    #+#             */
-/*   Updated: 2026/04/24 20:10:43 by ndi-tull         ###   ########.fr       */
+/*   Updated: 2026/04/27 00:04:12 by ndi-tull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 
 long	ft_atoi(char *str)
 {
-	long result;
-	int i;
+	long	result;
+	int		i;
 
 	i = 0;
 	result = 0;

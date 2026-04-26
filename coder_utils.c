@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   coder_utils.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ndi-tull < ndi-tull@student.42lyon.fr >    +#+  +:+       +#+        */
+/*   By: ndi-tull <ndi-tull@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/24 19:01:08 by ndi-tull          #+#    #+#             */
-/*   Updated: 2026/04/24 20:10:46 by ndi-tull         ###   ########.fr       */
+/*   Updated: 2026/04/26 23:42:33 by ndi-tull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,8 @@ static void	wait_dongle_ready(t_coder *coder, int idx)
 	t_dongle	*d;
 
 	d = &coder->t_shared_data->dongle[idx];
-	while (!is_simulation_over(coder->t_shared_data)
-		&& !dongle_ready(coder, idx))
+	while (!is_simulation_over(coder->t_shared_data) && !dongle_ready(coder,
+			idx))
 		pthread_cond_wait(&d->condition, &d->mutex);
 }
 
