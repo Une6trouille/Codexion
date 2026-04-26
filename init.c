@@ -6,44 +6,55 @@
 /*   By: ndi-tull <ndi-tull@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/24 20:24:01 by ndi-tull          #+#    #+#             */
-/*   Updated: 2026/04/27 00:03:29 by ndi-tull         ###   ########.fr       */
+/*   Updated: 2026/04/27 00:55:46 by ndi-tull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-static int	init_dongles(t_shared_data *shared_data)
+static int	init_dongle_queue(t_dongle *dongle, int nb_coders)
 {
-	int	i;
-
-	i = 0;
-	shared_data->dongle = malloc(sizeof(t_dongle)
-			* shared_data->args.nb_coders);
-	if (!shared_data->dongle)
+	dongle->queue.size = 0;
+	dongle->queue.data = malloc(sizeof(t_queue) * nb_coders);
+	if (!dongle->queue.data)
 		return (1);
+	return (0);
+}
+
+static void	init_dongle_values(t_dongle *dongle)
+{
+	dongle->free = 1;
+	dongle->nb_in_queue = 0;
+	dongle->seq_counter = 0;
+	dongle->release_time = 0;
+	pthread_cond_init(&dongle->condition, NULL);
+	pthread_mutex_init(&dongle->mutex, NULL);
+}
+
+static int	init_dongles_loop(t_shared_data *shared_data, int i)
+{
 	while (i < shared_data->args.nb_coders)
 	{
-		shared_data->dongle[i].free = 1;
-		shared_data->dongle[i].nb_in_queue = 0;
-		shared_data->dongle[i].seq_counter = 0;
-		pthread_cond_init(&shared_data->dongle[i].condition, NULL);
-		pthread_mutex_init(&shared_data->dongle[i].mutex, NULL);
-		shared_data->dongle[i].release_time = 0;
-		shared_data->dongle[i].queue.size = 0;
-		shared_data->dongle[i].queue.data = malloc(sizeof(t_queue)
-				* shared_data->args.nb_coders);
-		if (!shared_data->dongle[i].queue.data)
+		init_dongle_values(&shared_data->dongle[i]);
+		if (init_dongle_queue(&shared_data->dongle[i],
+				shared_data->args.nb_coders))
 		{
-			while (i > 0)
-			{
-				i--;
+			while (i-- > 0)
 				free(shared_data->dongle[i].queue.data);
-			}
 			return (1);
 		}
 		i++;
 	}
 	return (0);
+}
+
+static int	init_dongles(t_shared_data *shared_data)
+{
+	shared_data->dongle = malloc(sizeof(t_dongle)
+			* shared_data->args.nb_coders);
+	if (!shared_data->dongle)
+		return (1);
+	return (init_dongles_loop(shared_data, 0));
 }
 
 void	init_coders(t_shared_data *shared_data, t_coder *coders)
@@ -73,10 +84,10 @@ int	init_shared_data(t_shared_data *shared_data)
 	return (0);
 }
 
-void	create_thread(pthread_t *threads, t_coder *coders, pthread_t *monitor,
-		t_shared_data *shared_data)
+void	create_thread(pthread_t *threads, t_coder *coders,
+		pthread_t *monitor, t_shared_data *shared_data)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (i < shared_data->args.nb_coders)

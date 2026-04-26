@@ -8,7 +8,7 @@ OBJ = $(SRC:%.c=$(OBJDIR)/%.o)
 DEP = $(OBJ:%.o=%.d)
 
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -pthread -I ./ -MMD -MP
+CFLAGS = -Wall -Wextra -Werror -pthread -g3 -I ./ -MMD -MP
 
 #-fsanitize=thread
 
