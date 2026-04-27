@@ -6,7 +6,7 @@
 /*   By: ndi-tull <ndi-tull@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/24 19:00:00 by ndi-tull          #+#    #+#             */
-/*   Updated: 2026/04/27 03:55:58 by ndi-tull         ###   ########.fr       */
+/*   Updated: 2026/04/27 05:09:45 by ndi-tull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ typedef struct s_shared_data
 	t_args				args;
 	t_dongle			*dongle;
 	t_coder				*coders;
+	pthread_t			*threads;
 	pthread_mutex_t		log_mutex;
 	int					simulation_over;
 	long				start_time;
@@ -95,8 +96,7 @@ int						is_simulation_over(t_shared_data *sd);
 struct timespec			get_timespec_ms(long ms);
 void					log_action(t_coder *coder, char *message);
 void					release_dongles(t_coder *coder);
-void					free_all(t_shared_data *shared_data, t_coder *coders,
-							pthread_t *threads);
+void					free_all(t_shared_data *sd);
 void					*monitor_routine(void *arg);
 int						should_stop(t_coder *coder);
 void					heap_push(t_heap *heap, t_queue element, int scheduler);
@@ -109,5 +109,8 @@ void					destroy_dongles_until(t_dongle *dongles, int n);
 void					destroy_coders_until(t_coder *coders, int n);
 void					stop_and_join_coders(t_shared_data *sd,
 							pthread_t *threads, int n);
+t_shared_data			*setup_simulation(int argc, char **argv);
+int						alloc_main_resources(t_shared_data *sd);
+void					free_partial(t_shared_data *sd);
 
 #endif
