@@ -6,7 +6,7 @@
 /*   By: ndi-tull <ndi-tull@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/24 19:01:08 by ndi-tull          #+#    #+#             */
-/*   Updated: 2026/04/26 23:48:08 by ndi-tull         ###   ########.fr       */
+/*   Updated: 2026/04/27 03:55:21 by ndi-tull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,16 +66,7 @@ static int	alloc_main_resources(t_shared_data *sd, t_coder **coders,
 
 static void	free_partial(t_shared_data *sd)
 {
-	int	i;
-
-	i = 0;
-	while (i < sd->args.nb_coders)
-	{
-		pthread_mutex_destroy(&sd->dongle[i].mutex);
-		pthread_cond_destroy(&sd->dongle[i].condition);
-		free(sd->dongle[i].queue.data);
-		i++;
-	}
+	destroy_dongles_until(sd->dongle, sd->args.nb_coders);
 	pthread_mutex_destroy(&sd->simulation_mutex);
 	pthread_mutex_destroy(&sd->log_mutex);
 	free(sd->dongle);
@@ -99,13 +90,12 @@ int	main(int argc, char **argv)
 	if (init_shared_data(shared_data))
 		return (free(shared_data), 1);
 	if (alloc_main_resources(shared_data, &coders, &threads))
-	{
-		free_partial(shared_data);
-		return (1);
-	}
-	init_coders(shared_data, coders);
+		return (free_partial(shared_data), 1);
+	if (init_coders(shared_data, coders))
+		return (free_partial(shared_data), free(coders), free(threads), 1);
 	shared_data->coders = coders;
-	create_thread(threads, coders, &monitor, shared_data);
+	if (create_thread(threads, coders, &monitor, shared_data))
+		return (free_all(shared_data, coders, threads), 1);
 	join_threads(threads, &monitor, shared_data);
 	free_all(shared_data, coders, threads);
 	return (0);

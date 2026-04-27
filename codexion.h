@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   codexion.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ndi-tull < ndi-tull@student.42lyon.fr >    +#+  +:+       +#+        */
+/*   By: ndi-tull <ndi-tull@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/24 19:00:00 by ndi-tull          #+#    #+#             */
-/*   Updated: 2026/04/24 20:10:49 by ndi-tull         ###   ########.fr       */
+/*   Updated: 2026/04/27 03:55:58 by ndi-tull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,11 +82,11 @@ typedef struct s_coder
 
 int						parse_args(int argc, char **argv, t_args *args);
 long					ft_atoi(char *str);
-void					init_coders(t_shared_data *shared_data,
+int						init_coders(t_shared_data *shared_data,
 							t_coder *coders);
 int						init_shared_data(t_shared_data *shared_data);
 long					get_time_ms(void);
-void					create_thread(pthread_t *threads, t_coder *coders,
+int						create_thread(pthread_t *threads, t_coder *coders,
 							pthread_t *monitor, t_shared_data *shared_data);
 void					*coder_routine(void *arg);
 void					take_dongle(t_coder *coder, int idx);
@@ -102,5 +102,12 @@ int						should_stop(t_coder *coder);
 void					heap_push(t_heap *heap, t_queue element, int scheduler);
 t_queue					heap_pop(t_heap *heap);
 void					swap_queue(t_queue *a, t_queue *b);
+int						init_dongles_loop(t_shared_data *shared_data, int i);
+int						init_dongle_values(t_dongle *dongle);
+int						init_dongle_queue(t_dongle *dongle, int nb_coders);
+void					destroy_dongles_until(t_dongle *dongles, int n);
+void					destroy_coders_until(t_coder *coders, int n);
+void					stop_and_join_coders(t_shared_data *sd,
+							pthread_t *threads, int n);
 
 #endif
