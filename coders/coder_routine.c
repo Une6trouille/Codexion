@@ -6,7 +6,7 @@
 /*   By: ndi-tull <ndi-tull@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/24 19:01:08 by ndi-tull          #+#    #+#             */
-/*   Updated: 2026/04/27 00:05:18 by ndi-tull         ###   ########.fr       */
+/*   Updated: 2026/04/28 02:57:48 by ndi-tull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,16 @@
 
 static void	run_phase(t_coder *coder, char *msg, long duration)
 {
+	long	end;
+
 	log_action(coder, msg);
-	usleep(duration * 1000);
+	end = get_time_ms() + duration;
+	while (get_time_ms() < end)
+	{
+		if (is_simulation_over(coder->t_shared_data))
+			return ;
+		usleep(1000);
+	}
 }
 
 static void	work_cycle(t_coder *coder)
