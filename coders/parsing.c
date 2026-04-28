@@ -6,7 +6,7 @@
 /*   By: ndi-tull <ndi-tull@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/24 19:01:08 by ndi-tull          #+#    #+#             */
-/*   Updated: 2026/04/27 22:15:44 by ndi-tull         ###   ########.fr       */
+/*   Updated: 2026/04/28 03:29:28 by ndi-tull         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ static int	check_sheduler(char *str, t_args *args)
 		args->scheduler = 1;
 	else
 	{
-		fprintf(stderr, "Error, Scheduleur must be fifo or edf\n");
+		fprintf(stderr, "Error, Scheduler must be fifo or edf\n");
 		return (0);
 	}
 	return (1);
@@ -43,6 +43,8 @@ static int	ft_is_a_valid_int(char *str)
 			return (0);
 		i++;
 	}
+	if (i > 10)
+		return (0);
 	return (1);
 }
 
@@ -65,18 +67,28 @@ static int	check_numeric_args(char **argv)
 
 static int	fill_args(char **argv, t_args *args)
 {
-	args->nb_coders = ft_atoi(argv[1]);
+	long	tmp;
+
+	tmp = ft_atoi(argv[1]);
+	if (tmp < 1 || tmp > 2147483647)
+	{
+		fprintf(stderr, "Error, nb_coders must be between 1 and INT_MAX\n");
+		return (0);
+	}
+	args->nb_coders = (int)tmp;
 	args->time_to_burnout = ft_atoi(argv[2]);
 	args->time_to_compile = ft_atoi(argv[3]);
 	args->time_to_debug = ft_atoi(argv[4]);
 	args->time_to_refactor = ft_atoi(argv[5]);
-	args->nb_compiles_required = ft_atoi(argv[6]);
-	args->dongle_cooldown = ft_atoi(argv[7]);
-	if (args->nb_coders < 1)
+	tmp = ft_atoi(argv[6]);
+	if (tmp < 1 || tmp > 2147483647)
 	{
-		fprintf(stderr, "Error, nb_coders must be greater than 0\n");
+		fprintf(stderr, "Error, nb_compiles_required must be between 1"
+			" and INT_MAX\n");
 		return (0);
 	}
+	args->nb_compiles_required = (int)tmp;
+	args->dongle_cooldown = ft_atoi(argv[7]);
 	return (check_sheduler(argv[8], args));
 }
 
